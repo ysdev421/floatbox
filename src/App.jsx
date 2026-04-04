@@ -3,7 +3,7 @@ import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
 import {
   DndContext,
   closestCenter,
-  PointerSensor,
+  MouseSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
@@ -106,9 +106,9 @@ function MainApp({ user }) {
   }
 
   // dnd-kit センサー（ドラッグハンドル限定にするため activationConstraint を使う）
-  // TouchSensor を外す → スマホはスワイプ専用、ドラッグはPC（マウス）のみ
+  // MouseSensor のみ → タッチイベントを一切横取りしない
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } })
   )
 
   function handleDragEnd(event) {
