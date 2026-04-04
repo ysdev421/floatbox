@@ -9,11 +9,20 @@ export default function App() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    getRedirectResult(auth).catch(e => setError(e.message))
-    return onAuthStateChanged(auth, u => setUser(u ?? null), e => {
-      console.error(e)
-      setError(e.message)
-    })
+    let unsub
+    getRedirectResult(auth)
+      .catch(e => {
+        console.error(e)
+        setError(e.message)
+      })
+      .finally(() => {
+        // リダイレクト結果の処理が終わってから監視開始
+        unsub = onAuthStateChanged(auth, u => setUser(u ?? null), e => {
+          console.error(e)
+          setError(e.message)
+        })
+      })
+    return () => unsub?.()
   }, [])
 
   if (error) return <div className="loading" style={{padding: '24px', color: '#ef4444', fontSize: '13px', whiteSpace: 'pre-wrap'}}>{error}</div>
