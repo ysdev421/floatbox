@@ -4,7 +4,6 @@ import {
   DndContext,
   closestCenter,
   PointerSensor,
-  TouchSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
@@ -107,9 +106,9 @@ function MainApp({ user }) {
   }
 
   // dnd-kit センサー（ドラッグハンドル限定にするため activationConstraint を使う）
+  // TouchSensor を外す → スマホはスワイプ専用、ドラッグはPC（マウス）のみ
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   )
 
   function handleDragEnd(event) {
