@@ -86,8 +86,8 @@ function MainApp({ user }) {
         <span className="logo">FloatBox</span>
         <div className="header-right">
           <span className="count">{activeItems.length}件</span>
-          <button className="avatar-btn" onClick={() => signOut(auth)} title="ログアウト">
-            <img src={user.photoURL} alt={user.displayName} className="avatar" />
+          <button className="logout-btn" onClick={() => signOut(auth)}>
+            ログアウト
           </button>
         </div>
       </header>

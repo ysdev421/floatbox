@@ -89,19 +89,20 @@
   color: var(--text-sub);
 }
 
-.avatar-btn {
+.logout-btn {
   background: none;
-  border: none;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-sub);
+  font-size: 12px;
+  padding: 4px 10px;
   cursor: pointer;
-  padding: 0;
-  border-radius: 50%;
+  transition: color 0.15s, border-color 0.15s;
 }
 
-.avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: block;
+.logout-btn:hover {
+  color: var(--text);
+  border-color: var(--text-sub);
 }
 
 /* キャプチャ */
