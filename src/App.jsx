@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { onAuthStateChanged, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth'
+import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
 import { auth, provider } from './firebase'
 import { useItems } from './hooks/useItems'
 import './App.css'
@@ -9,10 +9,6 @@ export default function App() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    getRedirectResult(auth).catch(e => {
-      console.error(e)
-      setError(e.message)
-    })
     return onAuthStateChanged(auth, u => setUser(u ?? null), e => {
       console.error(e)
       setError(e.message)
@@ -27,7 +23,10 @@ export default function App() {
 
 function LoginScreen() {
   function login() {
-    signInWithRedirect(auth, provider).catch(console.error)
+    signInWithPopup(auth, provider).catch(e => {
+      console.error(e)
+      alert(e.message)
+    })
   }
   return (
     <div className="login-screen">
