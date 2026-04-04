@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
+import { onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth'
 import { auth, provider } from './firebase'
 import { useItems } from './hooks/useItems'
 import './App.css'
@@ -9,6 +9,7 @@ export default function App() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    getRedirectResult(auth).catch(e => setError(e.message))
     return onAuthStateChanged(auth, u => setUser(u ?? null), e => {
       console.error(e)
       setError(e.message)
@@ -23,11 +24,15 @@ export default function App() {
 
 function LoginScreen() {
   function login() {
-    signInWithPopup(auth, provider).catch(e => {
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches
+    const fn = isPWA ? signInWithRedirect : signInWithPopup
+    fn(auth, provider).catch(e => {
       console.error(e)
-      alert(e.message)
+      setError(e.message)
     })
   }
+
+  const [error, setError] = useState(null)
   return (
     <div className="login-screen">
       <div className="login-box">
@@ -37,6 +42,7 @@ function LoginScreen() {
           <GoogleIcon />
           Google でログイン
         </button>
+        {error && <p style={{color:'#ef4444', fontSize:'12px', textAlign:'center'}}>{error}</p>}
       </div>
     </div>
   )
