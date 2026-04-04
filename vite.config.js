@@ -17,8 +17,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
-        // ナビゲーションはネットワーク優先（リダイレクト認証フローを壊さないため）
         navigateFallback: null,
+        importScripts: ['/sw-push.js'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/.*\.firebaseapp\.com\/.*/,

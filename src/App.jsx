@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
 import { auth, provider } from './firebase'
 import { useItems } from './hooks/useItems'
+import { usePush } from './hooks/usePush'
 import './App.css'
 
 export default function App() {
@@ -49,6 +50,7 @@ function LoginScreen() {
 
 function MainApp({ user }) {
   const { items, loading, addItem, toggleDone, deleteItem } = useItems(user.uid)
+  const { permission, subscribe } = usePush(user.uid)
   const [text, setText] = useState('')
   const [type, setType] = useState('must')
   const [filter, setFilter] = useState('all')
@@ -99,6 +101,11 @@ function MainApp({ user }) {
         <span className="logo">FloatBox</span>
         <div className="header-right">
           <span className="count">{activeItems.length}件</span>
+          {permission !== 'granted' && permission !== 'unsupported' && (
+            <button className="notify-btn" onClick={subscribe} title="通知をオンにする">
+              🔔
+            </button>
+          )}
           <button className="logout-btn" onClick={() => signOut(auth)}>
             ログアウト
           </button>
