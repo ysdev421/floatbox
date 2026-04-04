@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { onAuthStateChanged, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth'
+import { onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth'
 import { auth, provider } from './firebase'
 import { useItems } from './hooks/useItems'
 import './App.css'
@@ -25,11 +25,19 @@ export default function App() {
 function LoginScreen() {
   const [error, setError] = useState(null)
 
-  function login() {
-    signInWithRedirect(auth, provider).catch(e => {
+  const isPWA = window.matchMedia('(display-mode: standalone)').matches
+
+  async function login() {
+    try {
+      if (isPWA) {
+        await signInWithRedirect(auth, provider)
+      } else {
+        await signInWithPopup(auth, provider)
+      }
+    } catch (e) {
       console.error(e)
       setError(e.message)
-    })
+    }
   }
   return (
     <div className="login-screen">
