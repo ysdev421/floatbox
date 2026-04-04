@@ -186,6 +186,10 @@
   background: var(--accent-hover);
 }
 
+.submit-btn:active:not(:disabled) {
+  transform: scale(0.93);
+}
+
 .submit-btn:disabled {
   opacity: 0.4;
   cursor: default;
@@ -235,6 +239,11 @@
 }
 
 /* カード */
+@keyframes card-in {
+  0%   { opacity: 0; transform: translateY(-10px) scale(0.97); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 .card {
   display: flex;
   align-items: flex-start;
@@ -244,6 +253,7 @@
   border-radius: var(--radius);
   border: 1.5px solid var(--border);
   transition: opacity 0.2s;
+  animation: card-in 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .card.must {
