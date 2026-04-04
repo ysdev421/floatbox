@@ -5,7 +5,7 @@
 ## ディレクトリ構成
 ## データフロー
 
-## Supabase 注意点
+## Firebase 注意点
 
 ## コード規則
 ## GitHub Actions: update_fields
