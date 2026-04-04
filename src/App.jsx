@@ -6,13 +6,20 @@ import './App.css'
 
 export default function App() {
   const [user, setUser] = useState(undefined) // undefined = loading
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-    // リダイレクト認証の結果を処理
-    getRedirectResult(auth).catch(console.error)
-    return onAuthStateChanged(auth, u => setUser(u ?? null))
+    getRedirectResult(auth).catch(e => {
+      console.error(e)
+      setError(e.message)
+    })
+    return onAuthStateChanged(auth, u => setUser(u ?? null), e => {
+      console.error(e)
+      setError(e.message)
+    })
   }, [])
 
+  if (error) return <div className="loading" style={{padding: '24px', color: '#ef4444', fontSize: '13px', whiteSpace: 'pre-wrap'}}>{error}</div>
   if (user === undefined) return <div className="loading">読み込み中...</div>
   if (!user) return <LoginScreen />
   return <MainApp user={user} />
