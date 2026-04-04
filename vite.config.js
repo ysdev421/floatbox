@@ -16,6 +16,16 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        // ナビゲーションはネットワーク優先（リダイレクト認証フローを壊さないため）
+        navigateFallback: null,
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/.*\.firebaseapp\.com\/.*/,
+            handler: 'NetworkOnly',
+          },
+        ],
+      },
       manifest: {
         name: 'FloatBox - もやもや解消',
         short_name: 'FloatBox',
