@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth'
+import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
 import { auth, provider } from './firebase'
 import { useItems } from './hooks/useItems'
 import './App.css'
@@ -9,20 +9,10 @@ export default function App() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    let unsub
-    getRedirectResult(auth)
-      .catch(e => {
-        console.error(e)
-        setError(e.message)
-      })
-      .finally(() => {
-        // リダイレクト結果の処理が終わってから監視開始
-        unsub = onAuthStateChanged(auth, u => setUser(u ?? null), e => {
-          console.error(e)
-          setError(e.message)
-        })
-      })
-    return () => unsub?.()
+    return onAuthStateChanged(auth, u => setUser(u ?? null), e => {
+      console.error(e)
+      setError(e.message)
+    })
   }, [])
 
   if (error) return <div className="loading" style={{padding: '24px', color: '#ef4444', fontSize: '13px', whiteSpace: 'pre-wrap'}}>{error}</div>
@@ -34,15 +24,9 @@ export default function App() {
 function LoginScreen() {
   const [error, setError] = useState(null)
 
-  const isPWA = window.matchMedia('(display-mode: standalone)').matches
-
   async function login() {
     try {
-      if (isPWA) {
-        await signInWithRedirect(auth, provider)
-      } else {
-        await signInWithPopup(auth, provider)
-      }
+      await signInWithPopup(auth, provider)
     } catch (e) {
       console.error(e)
       setError(e.message)
