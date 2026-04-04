@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
+import { onAuthStateChanged, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth'
 import { auth, provider } from './firebase'
 import { useItems } from './hooks/useItems'
 import './App.css'
@@ -8,6 +8,8 @@ export default function App() {
   const [user, setUser] = useState(undefined) // undefined = loading
 
   useEffect(() => {
+    // リダイレクト認証の結果を処理
+    getRedirectResult(auth).catch(console.error)
     return onAuthStateChanged(auth, u => setUser(u ?? null))
   }, [])
 
@@ -18,7 +20,7 @@ export default function App() {
 
 function LoginScreen() {
   function login() {
-    signInWithPopup(auth, provider).catch(console.error)
+    signInWithRedirect(auth, provider).catch(console.error)
   }
   return (
     <div className="login-screen">
