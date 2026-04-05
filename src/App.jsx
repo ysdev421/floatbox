@@ -365,21 +365,22 @@ function ItemCard({ item, completing, onToggle, onDelete, onMemo, onDueDate, dra
       </button>
 
       {/* 本文 */}
-      <div className="card-body" onClick={handleExpandToggle}>
+      <div className="card-body">
         <div className="card-top">
           <span className={`tag ${item.type}`}>{item.type === 'must' ? 'やらなきゃ' : 'やりたい'}</span>
-          <span className="expand-icon">{expanded ? '▲' : (item.memo || item.dueDate ? '📝' : '▼')}</span>
+          <button className="expand-btn" onClick={handleExpandToggle}>
+            {expanded ? '▲' : (item.memo || item.dueDate ? '📝' : '···')}
+          </button>
         </div>
         <p className="card-text">{item.text}</p>
 
-        {/* 期限バッジ（折りたたみ時も表示） */}
         {item.dueDate && !expanded && (() => {
           const d = getDueDateLabel(item.dueDate)
           return <span className={`due-badge ${d.status}`}>{d.label}</span>
         })()}
 
         {expanded && (
-          <div className="expand-area" onClick={e => e.stopPropagation()}>
+          <div className="expand-area">
             <label className="due-label">
               期限
               <input

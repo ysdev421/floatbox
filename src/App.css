@@ -302,7 +302,18 @@ html, body {
 }
 .tag.must { color: var(--must); }
 .tag.want { color: var(--want); }
-.expand-icon { font-size: 10px; color: var(--text-sub); }
+.expand-btn {
+  background: none;
+  border: none;
+  color: var(--text-sub);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: background 0.15s;
+}
+.expand-btn:hover { background: var(--surface2); }
 .card-text {
   font-size: 15px;
   line-height: 1.5;
