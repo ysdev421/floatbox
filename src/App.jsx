@@ -260,95 +260,26 @@ function getDueDateLabel(dueDate) {
 function ItemCard({ item, completing, onToggle, onDelete, onMemo, onDueDate, dragRef, dragStyle, dragHandleProps }) {
   const [expanded, setExpanded] = useState(false)
   const [memo, setMemo] = useState(item.memo ?? '')
-  const [swipeX, setSwipeX] = useState(0)
   const memoRef = useRef(null)
-  const cardRef = useRef(null)
-  const swipeState = useRef({ startX: null, startY: null, tracking: false })
 
   useEffect(() => { setMemo(item.memo ?? '') }, [item.memo])
-
-  // スワイプ: 非パッシブイベントリスナーで登録（スクロールと競合しないよう制御）
-  useEffect(() => {
-    const el = cardRef.current
-    if (!el) return
-
-    function onStart(e) {
-      if (e.touches.length !== 1) return
-      swipeState.current = {
-        startX: e.touches[0].clientX,
-        startY: e.touches[0].clientY,
-        tracking: false,
-        decided: false,
-      }
-    }
-
-    function onMove(e) {
-      const s = swipeState.current
-      if (s.startX === null) return
-      const dx = e.touches[0].clientX - s.startX
-      const dy = e.touches[0].clientY - s.startY
-
-      if (!s.decided) {
-        // 最初の動きで水平 or 垂直を判定
-        if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return
-        s.decided = true
-        s.tracking = Math.abs(dx) > Math.abs(dy)
-      }
-
-      if (s.tracking) {
-        e.preventDefault() // 水平スワイプ中はスクロールを止める
-        setSwipeX(Math.max(-80, Math.min(80, dx)))
-      }
-    }
-
-    function onEnd() {
-      const s = swipeState.current
-      if (s.tracking) {
-        setSwipeX(prev => {
-          if (prev > 60) onToggle(item.id, item.done)
-          else if (prev < -60) onDelete(item.id)
-          return 0
-        })
-      }
-      swipeState.current = { startX: null, startY: null, tracking: false, decided: false }
-    }
-
-    el.addEventListener('touchstart', onStart, { passive: true })
-    el.addEventListener('touchmove', onMove, { passive: false })
-    el.addEventListener('touchend', onEnd, { passive: true })
-    return () => {
-      el.removeEventListener('touchstart', onStart)
-      el.removeEventListener('touchmove', onMove)
-      el.removeEventListener('touchend', onEnd)
-    }
-  }, [item.id, item.done, onToggle, onDelete])
 
   function handleMemoBlur() {
     if (memo !== (item.memo ?? '')) onMemo(item.id, memo)
   }
 
-  function handleExpandToggle() {
-    setExpanded(v => {
-      if (!v) setTimeout(() => memoRef.current?.focus(), 50)
-      return !v
-    })
-  }
-
-  // dragRef と cardRef を両方セット
-  function setRefs(el) {
-    cardRef.current = el
-    if (typeof dragRef === 'function') dragRef(el)
+  function handleExpand() {
+    const next = !expanded
+    setExpanded(next)
+    if (next) setTimeout(() => memoRef.current?.focus(), 50)
   }
 
   const cls = ['card', item.type, item.done ? 'done' : '', completing ? 'completing' : ''].filter(Boolean).join(' ')
 
   return (
     <div
-      ref={setRefs}
-      style={{
-        ...dragStyle,
-        transform: [dragStyle?.transform, `translateX(${swipeX}px)`].filter(Boolean).join(' '),
-      }}
+      ref={dragRef}
+      style={dragStyle}
       className={cls}
     >
       {/* ドラッグハンドル */}
@@ -368,7 +299,7 @@ function ItemCard({ item, completing, onToggle, onDelete, onMemo, onDueDate, dra
       <div className="card-body">
         <div className="card-top">
           <span className={`tag ${item.type}`}>{item.type === 'must' ? 'やらなきゃ' : 'やりたい'}</span>
-          <button className="expand-btn" onClick={handleExpandToggle}>
+          <button className="expand-btn" onClick={handleExpand}>
             {expanded ? '▲' : (item.memo || item.dueDate ? '📝' : '···')}
           </button>
         </div>
