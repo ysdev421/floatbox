@@ -62,7 +62,7 @@ function LoginScreen() {
 }
 
 function MainApp({ user }) {
-  const { items, loading, addItem, toggleDone, updateMemo, deleteItem, reorder } = useItems(user.uid)
+  const { items, loading, addItem, toggleDone, updateMemo, updateDueDate, deleteItem, reorder } = useItems(user.uid)
   const { permission, subscribe } = usePush(user.uid)
   const [text, setText] = useState('')
   const [type, setType] = useState('must')
@@ -192,6 +192,7 @@ function MainApp({ user }) {
                 onToggle={handleToggle}
                 onDelete={deleteItem}
                 onMemo={updateMemo}
+                onDueDate={updateDueDate}
               />
             ))}
           </SortableContext>
@@ -210,6 +211,7 @@ function MainApp({ user }) {
             onToggle={handleToggle}
             onDelete={deleteItem}
             onMemo={updateMemo}
+            onDueDate={updateDueDate}
           />
         ))}
       </main>
@@ -218,7 +220,7 @@ function MainApp({ user }) {
 }
 
 // dnd-kit のソータブルラッパー
-function SortableCard({ item, completing, onToggle, onDelete, onMemo }) {
+function SortableCard({ item, completing, onToggle, onDelete, onMemo, onDueDate }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id })
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -233,6 +235,7 @@ function SortableCard({ item, completing, onToggle, onDelete, onMemo }) {
       onToggle={onToggle}
       onDelete={onDelete}
       onMemo={onMemo}
+      onDueDate={onDueDate}
       dragRef={setNodeRef}
       dragStyle={style}
       dragHandleProps={{ ...attributes, ...listeners }}
@@ -240,7 +243,21 @@ function SortableCard({ item, completing, onToggle, onDelete, onMemo }) {
   )
 }
 
-function ItemCard({ item, completing, onToggle, onDelete, onMemo, dragRef, dragStyle, dragHandleProps }) {
+// 期限ラベルのロジック
+function getDueDateLabel(dueDate) {
+  if (!dueDate) return null
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const due = new Date(dueDate)
+  due.setHours(0, 0, 0, 0)
+  const diff = Math.round((due - today) / 86400000)
+  if (diff < 0) return { label: `${Math.abs(diff)}日超過`, status: 'overdue' }
+  if (diff === 0) return { label: '今日', status: 'today' }
+  if (diff <= 3) return { label: `あと${diff}日`, status: 'soon' }
+  return { label: `${due.getMonth() + 1}/${due.getDate()}`, status: 'normal' }
+}
+
+function ItemCard({ item, completing, onToggle, onDelete, onMemo, onDueDate, dragRef, dragStyle, dragHandleProps }) {
   const [expanded, setExpanded] = useState(false)
   const [memo, setMemo] = useState(item.memo ?? '')
   const [swipeX, setSwipeX] = useState(0)
@@ -351,20 +368,40 @@ function ItemCard({ item, completing, onToggle, onDelete, onMemo, dragRef, dragS
       <div className="card-body" onClick={handleExpandToggle}>
         <div className="card-top">
           <span className={`tag ${item.type}`}>{item.type === 'must' ? 'やらなきゃ' : 'やりたい'}</span>
-          <span className="expand-icon">{expanded ? '▲' : (item.memo ? '📝' : '▼')}</span>
+          <span className="expand-icon">{expanded ? '▲' : (item.memo || item.dueDate ? '📝' : '▼')}</span>
         </div>
         <p className="card-text">{item.text}</p>
+
+        {/* 期限バッジ（折りたたみ時も表示） */}
+        {item.dueDate && !expanded && (() => {
+          const d = getDueDateLabel(item.dueDate)
+          return <span className={`due-badge ${d.status}`}>{d.label}</span>
+        })()}
+
         {expanded && (
-          <textarea
-            ref={memoRef}
-            className="memo-input"
-            value={memo}
-            onChange={e => setMemo(e.target.value)}
-            onBlur={handleMemoBlur}
-            onClick={e => e.stopPropagation()}
-            placeholder="メモを追加..."
-            rows={2}
-          />
+          <div className="expand-area" onClick={e => e.stopPropagation()}>
+            <label className="due-label">
+              期限
+              <input
+                type="date"
+                className="due-input"
+                value={item.dueDate ?? ''}
+                onChange={e => onDueDate(item.id, e.target.value || null)}
+              />
+              {item.dueDate && (
+                <button className="due-clear" onClick={() => onDueDate(item.id, null)}>×</button>
+              )}
+            </label>
+            <textarea
+              ref={memoRef}
+              className="memo-input"
+              value={memo}
+              onChange={e => setMemo(e.target.value)}
+              onBlur={handleMemoBlur}
+              placeholder="メモを追加..."
+              rows={2}
+            />
+          </div>
         )}
       </div>
 

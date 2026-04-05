@@ -62,6 +62,10 @@ export function useItems(uid) {
     await updateDoc(doc(db, 'users', uid, 'items', id), { memo })
   }
 
+  async function updateDueDate(id, dueDate) {
+    await updateDoc(doc(db, 'users', uid, 'items', id), { dueDate: dueDate ?? null })
+  }
+
   async function deleteItem(id) {
     await deleteDoc(doc(db, 'users', uid, 'items', id))
   }
@@ -75,5 +79,5 @@ export function useItems(uid) {
     await batch.commit()
   }
 
-  return { items, loading, addItem, toggleDone, updateMemo, deleteItem, reorder }
+  return { items, loading, addItem, toggleDone, updateMemo, updateDueDate, deleteItem, reorder }
 }
