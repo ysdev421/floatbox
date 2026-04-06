@@ -17,6 +17,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
         navigateFallback: null,
         importScripts: ['/sw-push.js'],
         runtimeCaching: [
@@ -30,8 +32,8 @@ export default defineConfig({
         name: 'FloatBox - もやもや解消',
         short_name: 'FloatBox',
         description: '頭の中のモヤモヤを素早く吐き出す',
-        theme_color: '#6366f1',
-        background_color: '#0f0f14',
+        theme_color: '#08090a',
+        background_color: '#08090a',
         display: 'standalone',
         icons: [
           {
