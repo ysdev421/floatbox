@@ -83,7 +83,7 @@ function MainApp({ user }) {
   const [text, setText] = useState('')
   const [type, setType] = useState('must')
   const [filter, setFilter] = useState('all')
-  const [viewMode, setViewMode] = useState('list') // 'list' | 'timeline' | 'calendar'
+  const [viewMode, setViewMode] = useState('list') // 'list' | 'calendar'
   const [showDone, setShowDone] = useState(false)
   const [completing, setCompleting] = useState(new Set())
   const [localItems, setLocalItems] = useState([])
@@ -209,7 +209,6 @@ function MainApp({ user }) {
         <div className="view-toggle">
           {[
             { key: 'list',     label: '一覧' },
-            { key: 'timeline', label: '時間軸' },
             { key: 'calendar', label: 'カレンダー' },
           ].map(v => (
             <button key={v.key} className={`view-btn ${viewMode === v.key ? 'active' : ''}`} onClick={() => setViewMode(v.key)}>
@@ -224,26 +223,14 @@ function MainApp({ user }) {
 
         {!loading && viewMode === 'list' && (
           <>
-            {activeItems.length === 0 && (
-              filter === 'all'
-                ? <EmptyState />
-                : <p className="empty">このカテゴリはクリア！</p>
-            )}
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-              <SortableContext items={activeItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
-                {activeItems.map(item => (
-                  <SortableCard
-                    key={item.id}
-                    item={item}
-                    completing={completing.has(item.id)}
-                    onToggle={handleToggle}
-                    onDelete={deleteItem}
-                    onMemo={updateMemo}
-                    onDueDate={updateDueDate}
-                  />
-                ))}
-              </SortableContext>
-            </DndContext>
+            <TimelineView
+              items={activeItems}
+              completing={completing}
+              onToggle={handleToggle}
+              onDelete={deleteItem}
+              onMemo={updateMemo}
+              onDueDate={updateDueDate}
+            />
             {doneItems.length > 0 && (
               <button className="done-toggle" onClick={() => setShowDone(v => !v)}>
                 完了済み {doneItems.length}件 {showDone ? '▲' : '▼'}
@@ -261,17 +248,6 @@ function MainApp({ user }) {
               />
             ))}
           </>
-        )}
-
-        {!loading && viewMode === 'timeline' && (
-          <TimelineView
-            items={activeItems}
-            completing={completing}
-            onToggle={handleToggle}
-            onDelete={deleteItem}
-            onMemo={updateMemo}
-            onDueDate={updateDueDate}
-          />
         )}
 
         {!loading && viewMode === 'calendar' && (
