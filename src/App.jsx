@@ -90,7 +90,18 @@ function MainApp({ user }) {
   const inputRef = useRef(null)
 
   useEffect(() => {
-    setLocalItems(items)
+    setLocalItems(prev => {
+      if (prev.length === 0) return items
+      const inSnap = new Map(items.map(i => [i.id, i]))
+      const prevIds = new Set(prev.map(i => i.id))
+      // 既存アイテムはデータを更新しつつ順序を保持、削除されたものは除く
+      const updated = prev
+        .filter(i => inSnap.has(i.id))
+        .map(i => ({ ...i, ...inSnap.get(i.id) }))
+      // Firestore に新しく現れたアイテムを先頭に追加
+      const brandNew = items.filter(i => !prevIds.has(i.id))
+      return [...brandNew, ...updated]
+    })
   }, [items])
 
   useEffect(() => {

@@ -25,40 +25,43 @@ export function useItems(uid, autoClearDays) {
 
     const q = query(collection(db, 'users', uid, 'items'))
 
-    const unsub = onSnapshot(q, snapshot => {
-      const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+    const unsub = onSnapshot(
+      q,
+      snapshot => {
+        const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
 
-      // 完了済みの自動削除
-      if (autoClearDays != null) {
-        const cutoff = Date.now() - autoClearDays * 86400000
-        docs.forEach(item => {
-          if (item.done && item.doneAt) {
-            const doneMs = item.doneAt.toMillis?.() ?? 0
-            if (doneMs < cutoff) {
-              deleteDoc(doc(db, 'users', uid, 'items', item.id))
+        // 完了済みの自動削除
+        if (autoClearDays != null) {
+          const cutoff = Date.now() - autoClearDays * 86400000
+          docs.forEach(item => {
+            if (item.done && item.doneAt) {
+              const doneMs = item.doneAt.toMillis?.() ?? 0
+              if (doneMs < cutoff) {
+                deleteDoc(doc(db, 'users', uid, 'items', item.id))
+              }
             }
-          }
-        })
-      }
+          })
+        }
 
-      // orderフィールドがあればそれで、なければcreatedAt降順（新しい順）
-      docs.sort((a, b) => {
-        const aHasOrder = a.order != null
-        const bHasOrder = b.order != null
-        if (aHasOrder && bHasOrder) return a.order - b.order
-        if (aHasOrder) return -1
-        if (bHasOrder) return 1
-        // どちらもorderなし → createdAt降順
-        const aTime = a.createdAt?.toMillis?.() ?? 0
-        const bTime = b.createdAt?.toMillis?.() ?? 0
-        return bTime - aTime
-      })
-      setItems(docs)
-      setLoading(false)
-    })
+        // orderフィールドがあればそれで、なければcreatedAt降順（新しい順）
+        docs.sort((a, b) => {
+          const aHasOrder = a.order != null
+          const bHasOrder = b.order != null
+          if (aHasOrder && bHasOrder) return a.order - b.order
+          if (aHasOrder) return -1
+          if (bHasOrder) return 1
+          const aTime = a.createdAt?.toMillis?.() ?? 0
+          const bTime = b.createdAt?.toMillis?.() ?? 0
+          return bTime - aTime
+        })
+        setItems(docs)
+        setLoading(false)
+      },
+      err => console.error('[useItems] snapshot error:', err)
+    )
 
     return unsub
-  }, [uid])
+  }, [uid, autoClearDays])
 
   async function addItem({ text, type }) {
     // 現在の最小order値より小さい値を先頭に
