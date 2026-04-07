@@ -26,11 +26,19 @@ export function useItems(uid) {
 
     const q = query(
       collection(db, 'users', uid, 'items'),
-      orderBy('order', 'asc')
+      orderBy('createdAt', 'desc')
     )
 
     const unsub = onSnapshot(q, snapshot => {
-      setItems(snapshot.docs.map(d => ({ id: d.id, ...d.data() })))
+      const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+      // orderフィールドがあればそれで、なければcreatedAt順（新しい順）
+      docs.sort((a, b) => {
+        if (a.order != null && b.order != null) return a.order - b.order
+        if (a.order != null) return -1
+        if (b.order != null) return 1
+        return 0
+      })
+      setItems(docs)
       setLoading(false)
     })
 
