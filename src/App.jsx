@@ -17,6 +17,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { auth, provider } from './firebase'
 import { useItems } from './hooks/useItems'
 import { usePush } from './hooks/usePush'
+import { useSettings } from './hooks/useSettings'
 import './App.css'
 
 export default function App() {
@@ -76,7 +77,8 @@ function LoginScreen() {
 }
 
 function MainApp({ user }) {
-  const { items, loading, addItem, toggleDone, updateMemo, updateDueDate, deleteItem, reorder } = useItems(user.uid)
+  const { settings, updateSettings } = useSettings(user.uid)
+  const { items, loading, addItem, toggleDone, updateMemo, updateDueDate, deleteItem, reorder } = useItems(user.uid, settings.autoClearDays)
   const { permission, subscribe } = usePush(user.uid)
   const [text, setText] = useState('')
   const [type, setType] = useState('must')
@@ -84,6 +86,7 @@ function MainApp({ user }) {
   const [showDone, setShowDone] = useState(false)
   const [completing, setCompleting] = useState(new Set())
   const [localItems, setLocalItems] = useState([])
+  const [showSettings, setShowSettings] = useState(false)
   const inputRef = useRef(null)
 
   useEffect(() => {
@@ -156,6 +159,7 @@ function MainApp({ user }) {
           {permission !== 'granted' && permission !== 'unsupported' && (
             <button className="notify-btn" onClick={subscribe} title="通知をオンにする">🔔</button>
           )}
+          <button className="settings-btn" onClick={() => setShowSettings(true)} title="設定">⚙</button>
           <button className="logout-btn" onClick={() => signOut(auth)}>ログアウト</button>
         </div>
       </header>
@@ -231,6 +235,52 @@ function MainApp({ user }) {
           />
         ))}
       </main>
+
+      {showSettings && (
+        <SettingsModal
+          settings={settings}
+          onUpdate={updateSettings}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
+    </div>
+  )
+}
+
+// ===== 設定モーダル =====
+const AUTO_CLEAR_OPTIONS = [
+  { value: null, label: '削除しない' },
+  { value: 1,    label: '1日後' },
+  { value: 3,    label: '3日後' },
+  { value: 7,    label: '7日後' },
+  { value: 30,   label: '30日後' },
+]
+
+function SettingsModal({ settings, onUpdate, onClose }) {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2 className="modal-title">設定</h2>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+
+        <div className="modal-section">
+          <p className="modal-section-title">完了済みの自動削除</p>
+          <p className="modal-section-desc">チェックしてから指定の日数が経つと自動で削除されます</p>
+          <div className="settings-options">
+            {AUTO_CLEAR_OPTIONS.map(opt => (
+              <button
+                key={String(opt.value)}
+                className={`settings-option ${settings.autoClearDays === opt.value ? 'active' : ''}`}
+                onClick={() => onUpdate({ autoClearDays: opt.value })}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

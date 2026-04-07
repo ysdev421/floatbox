@@ -97,6 +97,18 @@
   line-height: 1;
 }
 .notify-btn:hover { opacity: 1; }
+.settings-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+  padding: 0;
+  line-height: 1;
+  color: var(--text);
+}
+.settings-btn:hover { opacity: 1; }
 .logout-btn {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border);
@@ -613,4 +625,100 @@
 }
 .check-btn.popping {
   animation: check-pop 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+}
+
+/* ===== 設定モーダル ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+  animation: overlay-in 0.2s ease-out;
+}
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.modal {
+  width: 100%;
+  max-width: 480px;
+  background: #111214;
+  border: 1px solid var(--border2);
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+  padding: 24px var(--space-4) 36px;
+  animation: modal-up 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+}
+@keyframes modal-up {
+  from { transform: translateY(40px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.modal-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-mute);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.modal-close:hover { color: var(--text-2); }
+
+.modal-section { display: flex; flex-direction: column; gap: 8px; }
+.modal-section-title {
+  font-size: 13px;
+  font-weight: 510;
+  color: var(--text-2);
+  letter-spacing: -0.01em;
+}
+.modal-section-desc {
+  font-size: 12px;
+  color: var(--text-mute);
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+}
+.settings-options {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.settings-option {
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-sub);
+  font-size: 12px;
+  font-weight: 510;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  font-family: inherit;
+  letter-spacing: 0.01em;
+}
+.settings-option:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border2);
+  color: var(--text-2);
+}
+.settings-option.active {
+  background: rgba(94, 106, 210, 0.15);
+  border-color: rgba(94, 106, 210, 0.4);
+  color: #9099e8;
 }

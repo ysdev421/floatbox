@@ -12,7 +12,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '../firebase'
 
-export function useItems(uid) {
+export function useItems(uid, autoClearDays) {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -27,6 +27,20 @@ export function useItems(uid) {
 
     const unsub = onSnapshot(q, snapshot => {
       const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+
+      // 完了済みの自動削除
+      if (autoClearDays != null) {
+        const cutoff = Date.now() - autoClearDays * 86400000
+        docs.forEach(item => {
+          if (item.done && item.doneAt) {
+            const doneMs = item.doneAt.toMillis?.() ?? 0
+            if (doneMs < cutoff) {
+              deleteDoc(doc(db, 'users', uid, 'items', item.id))
+            }
+          }
+        })
+      }
+
       // orderフィールドがあればそれで、なければcreatedAt降順（新しい順）
       docs.sort((a, b) => {
         const aHasOrder = a.order != null
@@ -62,9 +76,13 @@ export function useItems(uid) {
   }
 
   async function toggleDone(id, currentDone) {
-    await updateDoc(doc(db, 'users', uid, 'items', id), {
-      done: !currentDone,
-    })
+    const patch = { done: !currentDone }
+    if (currentDone) {
+      patch.doneAt = null
+    } else {
+      patch.doneAt = serverTimestamp()
+    }
+    await updateDoc(doc(db, 'users', uid, 'items', id), patch)
   }
 
   async function updateMemo(id, memo) {
