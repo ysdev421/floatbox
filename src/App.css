@@ -606,21 +606,63 @@
 .memo-input::placeholder { color: var(--text-mute); }
 .memo-input:focus { border-color: rgba(94,106,210,0.5); }
 
-/* 削除ボタン */
-.delete-btn {
+/* 削除ボタン（展開エリア内） */
+.delete-area-btn {
+  align-self: flex-start;
+  margin-top: 4px;
   background: none;
-  border: none;
-  color: var(--text-mute);
-  font-size: 16px;
+  border: 1px solid rgba(239,68,68,0.25);
+  border-radius: var(--radius-xs);
+  color: rgba(239,68,68,0.6);
+  font-size: 11px;
+  font-weight: 510;
+  padding: 4px 10px;
   cursor: pointer;
-  padding: 0 3px;
-  line-height: 1;
-  opacity: 0;
-  transition: opacity 0.15s, color 0.15s;
-  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  font-family: inherit;
 }
-.card:hover .delete-btn { opacity: 0.5; }
-.delete-btn:hover { opacity: 1 !important; color: #f87171; }
+.delete-area-btn:hover {
+  background: rgba(239,68,68,0.08);
+  border-color: rgba(239,68,68,0.5);
+  color: #f87171;
+}
+.delete-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+.delete-confirm-text {
+  font-size: 11px;
+  color: var(--text-sub);
+}
+.delete-confirm-yes {
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.4);
+  border-radius: var(--radius-xs);
+  color: #f87171;
+  font-size: 11px;
+  font-weight: 510;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: inherit;
+}
+.delete-confirm-yes:hover { background: rgba(239,68,68,0.2); }
+.delete-confirm-no {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  color: var(--text-sub);
+  font-size: 11px;
+  font-weight: 510;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: inherit;
+}
+.delete-confirm-no:hover { background: rgba(255,255,255,0.04); }
 
 /* 完了済みトグル */
 .done-toggle {

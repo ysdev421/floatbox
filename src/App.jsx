@@ -568,6 +568,7 @@ function getDueDateLabel(dueDate) {
 function ItemCard({ item, completing, onToggle, onDelete, onMemo, onDueDate, dragRef, dragStyle, dragHandleProps }) {
   const [expanded, setExpanded] = useState(false)
   const [memo, setMemo] = useState(item.memo ?? '')
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const memoRef = useRef(null)
 
   useEffect(() => { setMemo(item.memo ?? '') }, [item.memo])
@@ -579,6 +580,7 @@ function ItemCard({ item, completing, onToggle, onDelete, onMemo, onDueDate, dra
   function handleExpand() {
     const next = !expanded
     setExpanded(next)
+    if (!next) setConfirmDelete(false)
     if (next) setTimeout(() => memoRef.current?.focus(), 50)
   }
 
@@ -641,12 +643,21 @@ function ItemCard({ item, completing, onToggle, onDelete, onMemo, onDueDate, dra
               placeholder="メモを追加..."
               rows={2}
             />
+            {/* 削除（展開時のみ・確認あり） */}
+            {!confirmDelete ? (
+              <button className="delete-area-btn" onClick={() => setConfirmDelete(true)}>
+                削除
+              </button>
+            ) : (
+              <div className="delete-confirm">
+                <span className="delete-confirm-text">本当に削除しますか？</span>
+                <button className="delete-confirm-yes" onClick={() => onDelete(item.id)}>削除する</button>
+                <button className="delete-confirm-no" onClick={() => setConfirmDelete(false)}>キャンセル</button>
+              </div>
+            )}
           </div>
         )}
       </div>
-
-      {/* 削除 */}
-      <button className="delete-btn" onClick={() => onDelete(item.id)} aria-label="削除">×</button>
     </div>
   )
 }
