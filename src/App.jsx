@@ -83,6 +83,7 @@ function MainApp({ user }) {
   const [text, setText] = useState('')
   const [type, setType] = useState('must')
   const [filter, setFilter] = useState('all')
+  const [viewMode, setViewMode] = useState('list') // 'list' | 'timeline' | 'calendar'
   const [showDone, setShowDone] = useState(false)
   const [completing, setCompleting] = useState(new Set())
   const [localItems, setLocalItems] = useState([])
@@ -197,54 +198,92 @@ function MainApp({ user }) {
         </div>
       </form>
 
-      <div className="filters">
-        {['all', 'must', 'want'].map(f => (
-          <button key={f} className={`filter-btn ${filter === f ? 'active' : ''}`} onClick={() => setFilter(f)}>
-            {f === 'all' ? 'すべて' : f === 'must' ? 'やらなきゃ' : 'やりたい'}
-          </button>
-        ))}
+      <div className="toolbar">
+        <div className="filters">
+          {['all', 'must', 'want'].map(f => (
+            <button key={f} className={`filter-btn ${filter === f ? 'active' : ''}`} onClick={() => setFilter(f)}>
+              {f === 'all' ? 'すべて' : f === 'must' ? 'やらなきゃ' : 'やりたい'}
+            </button>
+          ))}
+        </div>
+        <div className="view-toggle">
+          {[
+            { key: 'list',     label: '一覧' },
+            { key: 'timeline', label: '時間軸' },
+            { key: 'calendar', label: 'カレンダー' },
+          ].map(v => (
+            <button key={v.key} className={`view-btn ${viewMode === v.key ? 'active' : ''}`} onClick={() => setViewMode(v.key)}>
+              {v.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <main className="list">
         {loading && <p className="empty">読み込み中...</p>}
-        {!loading && activeItems.length === 0 && (
-          filter === 'all'
-            ? <EmptyState />
-            : <p className="empty">このカテゴリはクリア！</p>
-        )}
 
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={activeItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
-            {activeItems.map(item => (
-              <SortableCard
+        {!loading && viewMode === 'list' && (
+          <>
+            {activeItems.length === 0 && (
+              filter === 'all'
+                ? <EmptyState />
+                : <p className="empty">このカテゴリはクリア！</p>
+            )}
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={activeItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
+                {activeItems.map(item => (
+                  <SortableCard
+                    key={item.id}
+                    item={item}
+                    completing={completing.has(item.id)}
+                    onToggle={handleToggle}
+                    onDelete={deleteItem}
+                    onMemo={updateMemo}
+                    onDueDate={updateDueDate}
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
+            {doneItems.length > 0 && (
+              <button className="done-toggle" onClick={() => setShowDone(v => !v)}>
+                完了済み {doneItems.length}件 {showDone ? '▲' : '▼'}
+              </button>
+            )}
+            {showDone && doneItems.map(item => (
+              <ItemCard
                 key={item.id}
                 item={item}
-                completing={completing.has(item.id)}
+                completing={false}
                 onToggle={handleToggle}
                 onDelete={deleteItem}
                 onMemo={updateMemo}
                 onDueDate={updateDueDate}
               />
             ))}
-          </SortableContext>
-        </DndContext>
-
-        {doneItems.length > 0 && (
-          <button className="done-toggle" onClick={() => setShowDone(v => !v)}>
-            完了済み {doneItems.length}件 {showDone ? '▲' : '▼'}
-          </button>
+          </>
         )}
-        {showDone && doneItems.map(item => (
-          <ItemCard
-            key={item.id}
-            item={item}
-            completing={false}
+
+        {!loading && viewMode === 'timeline' && (
+          <TimelineView
+            items={activeItems}
+            completing={completing}
             onToggle={handleToggle}
             onDelete={deleteItem}
             onMemo={updateMemo}
             onDueDate={updateDueDate}
           />
-        ))}
+        )}
+
+        {!loading && viewMode === 'calendar' && (
+          <CalendarView
+            items={activeItems}
+            completing={completing}
+            onToggle={handleToggle}
+            onDelete={deleteItem}
+            onMemo={updateMemo}
+            onDueDate={updateDueDate}
+          />
+        )}
       </main>
 
       {showSettings && (
@@ -253,6 +292,198 @@ function MainApp({ user }) {
           onUpdate={updateSettings}
           onClose={() => setShowSettings(false)}
         />
+      )}
+    </div>
+  )
+}
+
+// ===== 時間軸グループ =====
+const TL_GROUPS = [
+  { key: 'overdue', label: '期限切れ' },
+  { key: 'today',   label: '今日' },
+  { key: 'week',    label: '今週' },
+  { key: 'month',   label: '今月' },
+  { key: 'later',   label: 'それ以降' },
+  { key: 'noDate',  label: '日付なし' },
+]
+
+function groupByTimeline(items) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const g = { overdue: [], today: [], week: [], month: [], later: [], noDate: [] }
+  items.forEach(item => {
+    if (!item.dueDate) { g.noDate.push(item); return }
+    const due = new Date(item.dueDate)
+    due.setHours(0, 0, 0, 0)
+    const diff = Math.round((due - today) / 86400000)
+    if (diff < 0)       g.overdue.push(item)
+    else if (diff === 0) g.today.push(item)
+    else if (diff <= 7)  g.week.push(item)
+    else if (diff <= 31) g.month.push(item)
+    else                 g.later.push(item)
+  })
+  return g
+}
+
+function TimelineView({ items, completing, onToggle, onDelete, onMemo, onDueDate }) {
+  const groups = groupByTimeline(items)
+  const hasAny = TL_GROUPS.some(g => groups[g.key].length > 0)
+  if (!hasAny) return <p className="empty">タスクがありません</p>
+  return (
+    <div className="timeline-view">
+      {TL_GROUPS.map(({ key, label }) => {
+        const list = groups[key]
+        if (list.length === 0) return null
+        return (
+          <div key={key} className={`tl-group tl-${key}`}>
+            <div className="tl-header">
+              <span className="tl-label">{label}</span>
+              <span className="tl-count">{list.length}</span>
+            </div>
+            {list.map(item => (
+              <ItemCard
+                key={item.id}
+                item={item}
+                completing={completing.has(item.id)}
+                onToggle={onToggle}
+                onDelete={onDelete}
+                onMemo={onMemo}
+                onDueDate={onDueDate}
+              />
+            ))}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ===== カレンダービュー =====
+const DOW_LABELS = ['日', '月', '火', '水', '木', '金', '土']
+
+function toDateStr(year, month, day) {
+  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+}
+
+function CalendarView({ items, completing, onToggle, onDelete, onMemo, onDueDate }) {
+  const now = new Date()
+  const [year, setYear] = useState(now.getFullYear())
+  const [month, setMonth] = useState(now.getMonth())
+  const [selectedDate, setSelectedDate] = useState(null)
+
+  const todayStr = toDateStr(now.getFullYear(), now.getMonth(), now.getDate())
+
+  // 日付→アイテムのマップ
+  const byDate = {}
+  items.forEach(item => {
+    if (item.dueDate) {
+      if (!byDate[item.dueDate]) byDate[item.dueDate] = []
+      byDate[item.dueDate].push(item)
+    }
+  })
+  const noDateItems = items.filter(i => !i.dueDate)
+
+  // カレンダーグリッド
+  const firstDow = new Date(year, month, 1).getDay()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const cells = [...Array(firstDow).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)]
+
+  function prevMonth() {
+    if (month === 0) { setYear(y => y - 1); setMonth(11) }
+    else setMonth(m => m - 1)
+    setSelectedDate(null)
+  }
+  function nextMonth() {
+    if (month === 11) { setYear(y => y + 1); setMonth(0) }
+    else setMonth(m => m + 1)
+    setSelectedDate(null)
+  }
+
+  const selectedItems = selectedDate ? (byDate[selectedDate] ?? []) : []
+
+  return (
+    <div className="calendar-view">
+      <div className="cal-nav-bar">
+        <button className="cal-nav" onClick={prevMonth}>‹</button>
+        <span className="cal-month">{year}年{month + 1}月</span>
+        <button className="cal-nav" onClick={nextMonth}>›</button>
+      </div>
+
+      <div className="cal-grid">
+        {DOW_LABELS.map((d, i) => (
+          <div key={d} className={`cal-dow ${i === 0 ? 'sun' : i === 6 ? 'sat' : ''}`}>{d}</div>
+        ))}
+        {cells.map((day, i) => {
+          if (!day) return <div key={`e${i}`} className="cal-cell empty" />
+          const ds = toDateStr(year, month, day)
+          const dayItems = byDate[ds] ?? []
+          const isToday = ds === todayStr
+          const isSelected = ds === selectedDate
+          const mustCount = dayItems.filter(it => it.type === 'must').length
+          const wantCount = dayItems.filter(it => it.type === 'want').length
+          const dow = (firstDow + day - 1) % 7
+          return (
+            <div
+              key={day}
+              className={[
+                'cal-cell',
+                isToday ? 'today' : '',
+                isSelected ? 'selected' : '',
+                dayItems.length ? 'has-items' : '',
+                dow === 0 ? 'sun' : dow === 6 ? 'sat' : '',
+              ].filter(Boolean).join(' ')}
+              onClick={() => setSelectedDate(isSelected ? null : ds)}
+            >
+              <span className="cal-day-num">{day}</span>
+              {dayItems.length > 0 && (
+                <div className="cal-dots">
+                  {mustCount > 0 && <span className="cal-dot must" />}
+                  {wantCount > 0 && <span className="cal-dot want" />}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {selectedDate && (
+        <div className="cal-detail">
+          <p className="cal-detail-title">
+            {selectedDate.replace(/^\d{4}-(\d{2})-(\d{2})$/, '$1/$2')}
+            {selectedItems.length > 0 ? ` · ${selectedItems.length}件` : ''}
+          </p>
+          {selectedItems.length === 0
+            ? <p className="empty" style={{ padding: '12px 0' }}>この日の予定はなし</p>
+            : selectedItems.map(item => (
+                <ItemCard
+                  key={item.id}
+                  item={item}
+                  completing={completing.has(item.id)}
+                  onToggle={onToggle}
+                  onDelete={onDelete}
+                  onMemo={onMemo}
+                  onDueDate={onDueDate}
+                />
+              ))
+          }
+        </div>
+      )}
+
+      {noDateItems.length > 0 && (
+        <div className="cal-no-date">
+          <p className="cal-detail-title">日付なし · {noDateItems.length}件</p>
+          {noDateItems.map(item => (
+            <ItemCard
+              key={item.id}
+              item={item}
+              completing={completing.has(item.id)}
+              onToggle={onToggle}
+              onDelete={onDelete}
+              onMemo={onMemo}
+              onDueDate={onDueDate}
+            />
+          ))}
+        </div>
       )}
     </div>
   )
