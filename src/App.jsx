@@ -29,9 +29,23 @@ export default function App() {
     })
   }, [])
 
+  const [showOnboarding, setShowOnboarding] = useState(false)
+
+  useEffect(() => {
+    if (user && !localStorage.getItem('floatbox_onboarded')) {
+      setShowOnboarding(true)
+    }
+  }, [user])
+
+  function finishOnboarding() {
+    localStorage.setItem('floatbox_onboarded', '1')
+    setShowOnboarding(false)
+  }
+
   if (error) return <div className="loading error">{error}</div>
   if (user === undefined) return <div className="loading">読み込み中...</div>
   if (!user) return <LoginScreen />
+  if (showOnboarding) return <Onboarding onDone={finishOnboarding} />
   return <MainApp user={user} />
 }
 
@@ -179,7 +193,9 @@ function MainApp({ user }) {
       <main className="list">
         {loading && <p className="empty">読み込み中...</p>}
         {!loading && activeItems.length === 0 && (
-          <p className="empty">{filter === 'all' ? '頭の中をスッキリさせよう' : 'このカテゴリはクリア！'}</p>
+          filter === 'all'
+            ? <EmptyState />
+            : <p className="empty">このカテゴリはクリア！</p>
         )}
 
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -339,6 +355,85 @@ function ItemCard({ item, completing, onToggle, onDelete, onMemo, onDueDate, dra
 
       {/* 削除 */}
       <button className="delete-btn" onClick={() => onDelete(item.id)} aria-label="削除">×</button>
+    </div>
+  )
+}
+
+// ===== 空状態 =====
+function EmptyState() {
+  return (
+    <div className="empty-state">
+      <div className="empty-icon">
+        <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="16" y="42" width="48" height="26" rx="6" stroke="#5e6ad2" strokeWidth="3"/>
+          <line x1="40" y1="14" x2="40" y2="46" stroke="#5e6ad2" strokeWidth="3" strokeLinecap="round"/>
+          <polyline points="28,36 40,48 52,36" stroke="#5e6ad2" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+          <circle cx="30" cy="56" r="3" fill="#5e6ad2" opacity="0.4"/>
+          <circle cx="40" cy="56" r="3" fill="#5e6ad2" opacity="0.65"/>
+          <circle cx="50" cy="56" r="3" fill="#5e6ad2"/>
+        </svg>
+      </div>
+      <p className="empty-title">頭の中を吐き出そう</p>
+      <p className="empty-desc">
+        やらなきゃいけないこと、やりたいこと<br />
+        言語化できなくてもOK。<br />
+        とにかく入力して外に出す。
+      </p>
+      <div className="empty-hints">
+        <div className="hint"><span className="hint-key">やらなきゃ</span>締め切りや義務感があるもの</div>
+        <div className="hint"><span className="hint-key">やりたい</span>興味・やってみたいこと</div>
+      </div>
+    </div>
+  )
+}
+
+// ===== オンボーディング =====
+const SLIDES = [
+  {
+    icon: '🌀',
+    title: '頭がごちゃごちゃしてる？',
+    desc: '未完了のことは脳に居座り続けます。\nやらなきゃ・やりたいが混在して\nモヤモヤが消えない状態、それが「メンタルクラッター」。',
+  },
+  {
+    icon: '📤',
+    title: 'まず、全部吐き出す',
+    desc: '言語化できなくていい。\nとにかく入力して頭の外に出すことで\n脳の負荷がすっと下がります。',
+  },
+  {
+    icon: '✅',
+    title: 'やらなきゃ と やりたい を分ける',
+    desc: '2種類のモヤモヤを同じ場所で管理。\n吐き出した後で分類して、\n一つずつ消していこう。',
+  },
+]
+
+function Onboarding({ onDone }) {
+  const [slide, setSlide] = useState(0)
+  const current = SLIDES[slide]
+  const isLast = slide === SLIDES.length - 1
+
+  return (
+    <div className="onboarding">
+      <button className="ob-skip" onClick={onDone}>スキップ</button>
+
+      <div className="ob-content">
+        <div className="ob-icon">{current.icon}</div>
+        <h2 className="ob-title">{current.title}</h2>
+        <p className="ob-desc">{current.desc}</p>
+      </div>
+
+      <div className="ob-footer">
+        <div className="ob-dots">
+          {SLIDES.map((_, i) => (
+            <span key={i} className={`ob-dot ${i === slide ? 'active' : ''}`} />
+          ))}
+        </div>
+        <button
+          className="ob-next"
+          onClick={() => isLast ? onDone() : setSlide(s => s + 1)}
+        >
+          {isLast ? 'はじめる' : '次へ'}
+        </button>
+      </div>
     </div>
   )
 }

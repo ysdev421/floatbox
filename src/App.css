@@ -232,6 +232,144 @@
   letter-spacing: 0.01em;
 }
 
+/* ===== 空状態 ===== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px 32px;
+  gap: 16px;
+  text-align: center;
+}
+.empty-icon svg {
+  width: 72px;
+  height: 72px;
+  opacity: 0.9;
+}
+.empty-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-2);
+  letter-spacing: -0.02em;
+}
+.empty-desc {
+  font-size: 13px;
+  color: var(--text-sub);
+  line-height: 1.9;
+  letter-spacing: 0.01em;
+}
+.empty-hints {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 280px;
+  margin-top: 8px;
+}
+.hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-sub);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  padding: 8px 12px;
+  text-align: left;
+}
+.hint-key {
+  font-weight: 600;
+  color: var(--text-2);
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+/* ===== オンボーディング ===== */
+.onboarding {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  padding: 24px 32px 40px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.ob-skip {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  color: var(--text-mute);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 0;
+  font-family: inherit;
+  transition: color 0.15s;
+}
+.ob-skip:hover { color: var(--text-sub); }
+.ob-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  text-align: center;
+}
+.ob-icon {
+  font-size: 56px;
+  line-height: 1;
+}
+.ob-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.03em;
+  line-height: 1.3;
+}
+.ob-desc {
+  font-size: 14px;
+  color: var(--text-sub);
+  line-height: 1.9;
+  white-space: pre-line;
+  max-width: 300px;
+  letter-spacing: 0.01em;
+}
+.ob-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ob-dots {
+  display: flex;
+  gap: 6px;
+}
+.ob-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border2);
+  transition: background 0.2s, width 0.2s;
+}
+.ob-dot.active {
+  background: var(--accent);
+  width: 18px;
+  border-radius: 3px;
+}
+.ob-next {
+  padding: 11px 28px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: -0.01em;
+  transition: background 0.15s;
+}
+.ob-next:hover { background: var(--accent-light); }
+
 /* ===== カード ===== */
 @keyframes card-in {
   from { opacity: 0; transform: translateY(-6px); }
