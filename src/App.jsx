@@ -179,10 +179,10 @@ function MainApp({ user }) {
       <form className="capture" onSubmit={handleAdd}>
         <div className="type-toggle">
           <button type="button" className={`type-btn must ${type === 'must' ? 'active' : ''}`} onClick={() => setType('must')}>
-            やらなきゃ
+            Must
           </button>
           <button type="button" className={`type-btn want ${type === 'want' ? 'active' : ''}`} onClick={() => setType('want')}>
-            やりたい
+            Want
           </button>
         </div>
         <div className="input-row">
@@ -202,7 +202,7 @@ function MainApp({ user }) {
         <div className="filters">
           {['all', 'must', 'want'].map(f => (
             <button key={f} className={`filter-btn ${filter === f ? 'active' : ''}`} onClick={() => setFilter(f)}>
-              {f === 'all' ? 'すべて' : f === 'must' ? 'やらなきゃ' : 'やりたい'}
+              {f === 'all' ? 'All' : f === 'must' ? 'Must' : 'Want'}
             </button>
           ))}
         </div>
@@ -584,7 +584,7 @@ function ItemCard({ item, completing, onToggle, onDelete, onMemo, onDueDate, dra
       {/* 本文 */}
       <div className="card-body">
         <div className="card-top">
-          <span className={`tag ${item.type}`}>{item.type === 'must' ? 'やらなきゃ' : 'やりたい'}</span>
+          <span className={`tag ${item.type}`}>{item.type === 'must' ? 'Must' : 'Want'}</span>
           <button className="expand-btn" onClick={handleExpand}>
             {expanded ? '▲' : (item.memo || item.dueDate ? '📝' : '···')}
           </button>
