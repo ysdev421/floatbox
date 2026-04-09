@@ -579,11 +579,14 @@
   background: none;
   border: none;
   color: var(--text-mute);
-  font-size: 13px;
+  font-size: 14px;
   cursor: pointer;
-  padding: 0;
+  padding: 6px 8px;
+  margin: -6px -4px;
   opacity: 0.6;
   transition: opacity 0.15s, color 0.15s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .due-clear:hover { opacity: 1; color: #f87171; }
 
