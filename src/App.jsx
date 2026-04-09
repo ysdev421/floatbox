@@ -200,12 +200,9 @@ function MainApp({ user, onToggleTheme, theme }) {
 
       <form className="capture" onSubmit={handleAdd}>
         <div className="type-toggle">
-          <button type="button" className={`type-btn must ${type === 'must' ? 'active' : ''}`} onClick={() => setType('must')}>
-            Must
-          </button>
-          <button type="button" className={`type-btn want ${type === 'want' ? 'active' : ''}`} onClick={() => setType('want')}>
-            Want
-          </button>
+          <button type="button" className={`type-btn must ${type === 'must' ? 'active' : ''}`} onClick={() => setType('must')}>Must</button>
+          <button type="button" className={`type-btn want ${type === 'want' ? 'active' : ''}`} onClick={() => setType('want')}>Want</button>
+          <button type="button" className={`type-btn someday ${type === 'someday' ? 'active' : ''}`} onClick={() => setType('someday')}>Someday</button>
         </div>
         <div className="input-row">
           <input
@@ -222,9 +219,9 @@ function MainApp({ user, onToggleTheme, theme }) {
 
       <div className="toolbar">
         <div className="filters">
-          {['all', 'must', 'want'].map(f => (
+          {['all', 'must', 'want', 'someday'].map(f => (
             <button key={f} className={`filter-btn ${filter === f ? 'active' : ''}`} onClick={() => setFilter(f)}>
-              {f === 'all' ? 'All' : f === 'must' ? 'Must' : 'Want'}
+              {f === 'all' ? 'All' : f === 'must' ? 'Must' : f === 'want' ? 'Want' : 'Someday'}
             </button>
           ))}
         </div>
@@ -435,8 +432,9 @@ function CalendarView({ items, completing, onToggle, onDelete, onMemo, onType, o
           const dayItems = byDate[ds] ?? []
           const isToday = ds === todayStr
           const isSelected = ds === selectedDate
-          const mustCount = dayItems.filter(it => it.type === 'must').length
-          const wantCount = dayItems.filter(it => it.type === 'want').length
+          const mustCount    = dayItems.filter(it => it.type === 'must').length
+          const wantCount    = dayItems.filter(it => it.type === 'want').length
+          const somedayCount = dayItems.filter(it => it.type === 'someday').length
           const dow = (firstDow + day - 1) % 7
           return (
             <div
@@ -453,8 +451,9 @@ function CalendarView({ items, completing, onToggle, onDelete, onMemo, onType, o
               <span className="cal-day-num">{day}</span>
               {dayItems.length > 0 && (
                 <div className="cal-dots">
-                  {mustCount > 0 && <span className="cal-dot must" />}
-                  {wantCount > 0 && <span className="cal-dot want" />}
+                  {mustCount    > 0 && <span className="cal-dot must" />}
+                  {wantCount    > 0 && <span className="cal-dot want" />}
+                  {somedayCount > 0 && <span className="cal-dot someday" />}
                 </div>
               )}
             </div>
@@ -663,13 +662,22 @@ function ItemCard({ item, completing, onToggle, onDelete, onMemo, onType, onText
       {/* 本文 */}
       <div className="card-body">
         <div className="card-top">
-          <button
-            className={`tag tag-btn ${item.type}`}
-            onClick={() => onType(item.id, item.type === 'must' ? 'want' : 'must')}
-            title="タップでMust/Want切替"
-          >
-            {item.type === 'must' ? 'Must' : 'Want'}
-          </button>
+          {expanded ? (
+            <button
+              className={`tag tag-btn ${item.type}`}
+              onClick={() => {
+                const next = item.type === 'must' ? 'want' : item.type === 'want' ? 'someday' : 'must'
+                onType(item.id, next)
+              }}
+              title="タップで切替"
+            >
+              {item.type === 'must' ? 'Must' : item.type === 'want' ? 'Want' : 'Someday'}
+            </button>
+          ) : (
+            <span className={`tag ${item.type}`}>
+              {item.type === 'must' ? 'Must' : item.type === 'want' ? 'Want' : 'Someday'}
+            </span>
+          )}
           <button className="expand-btn" onClick={handleExpand}>
             {expanded ? '▲' : (item.memo || item.dueDate ? '📝' : '···')}
           </button>
