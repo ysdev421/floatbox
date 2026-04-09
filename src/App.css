@@ -572,6 +572,24 @@
 .due-badge.today   { background: rgba(245,158,11,0.2);  color: var(--must); }
 .due-badge.overdue { background: rgba(239,68,68,0.15);  color: #f87171; }
 
+/* 削除カウントダウンバッジ */
+.clear-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 510;
+  padding: 1px 6px;
+  border-radius: var(--radius-xs);
+  margin-top: 3px;
+  margin-left: 4px;
+  letter-spacing: 0.01em;
+  background: rgba(148,163,184,0.1);
+  color: var(--text-mute);
+}
+.clear-badge.urgent {
+  background: rgba(239,68,68,0.12);
+  color: #f87171;
+}
+
 /* 展開エリア */
 .expand-area {
   display: flex;

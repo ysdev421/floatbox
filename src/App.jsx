@@ -272,6 +272,7 @@ function MainApp({ user, onToggleTheme, theme }) {
                 onDueDate={updateDueDate}
                 expanded={expandedIds.has(item.id)}
                 onToggleExpand={handleToggleExpand}
+                autoClearDays={settings.autoClearDays}
               />
             ))}
           </>
@@ -608,7 +609,7 @@ function getDueDateLabel(dueDate) {
   return { label: `${due.getMonth() + 1}/${due.getDate()}`, status: 'normal' }
 }
 
-function ItemCard({ item, completing, onToggle, onDelete, onMemo, onType, onText, onDueDate, expanded, onToggleExpand, dragRef, dragStyle, dragHandleProps }) {
+function ItemCard({ item, completing, onToggle, onDelete, onMemo, onType, onText, onDueDate, expanded, onToggleExpand, autoClearDays, dragRef, dragStyle, dragHandleProps }) {
   const [memo, setMemo] = useState(item.memo ?? '')
   const [localDate, setLocalDate] = useState(item.dueDate ?? '')
   const [editingText, setEditingText] = useState(false)
@@ -639,6 +640,14 @@ function ItemCard({ item, completing, onToggle, onDelete, onMemo, onType, onText
   }
 
   const cls = ['card', item.type, item.done ? 'done' : '', completing ? 'completing' : ''].filter(Boolean).join(' ')
+
+  // 完了済みの残り削除日数
+  let daysLeft = null
+  if (item.done && autoClearDays != null && item.doneAt) {
+    const doneMs = item.doneAt.toMillis?.() ?? 0
+    const deleteAt = doneMs + autoClearDays * 86400000
+    daysLeft = Math.ceil((deleteAt - Date.now()) / 86400000)
+  }
 
   return (
     <div
@@ -701,6 +710,12 @@ function ItemCard({ item, completing, onToggle, onDelete, onMemo, onType, onText
           const d = getDueDateLabel(item.dueDate)
           return <span className={`due-badge ${d.status}`}>{d.label}</span>
         })()}
+
+        {daysLeft !== null && (
+          <span className={`clear-badge ${daysLeft <= 1 ? 'urgent' : ''}`}>
+            {daysLeft <= 0 ? 'まもなく削除' : `${daysLeft}日後に削除`}
+          </span>
+        )}
 
         {expanded && (
           <div className="expand-area">
