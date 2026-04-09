@@ -57,12 +57,12 @@ export default function App() {
 
   if (error) return <div className="loading error">{error}</div>
   if (user === undefined) return <div className="loading">読み込み中...</div>
-  if (!user) return <LoginScreen onToggleTheme={toggleTheme} theme={theme} />
+  if (!user) return <LoginScreen />
   if (showOnboarding) return <Onboarding onDone={finishOnboarding} />
   return <MainApp user={user} onToggleTheme={toggleTheme} theme={theme} />
 }
 
-function LoginScreen({ onToggleTheme, theme }) {
+function LoginScreen() {
   const [error, setError] = useState(null)
 
   async function login() {
@@ -75,9 +75,6 @@ function LoginScreen({ onToggleTheme, theme }) {
 
   return (
     <div className="login-screen">
-      <button className="theme-btn" onClick={onToggleTheme} title="テーマ切替">
-        {theme === 'dark' ? '☀' : '☾'}
-      </button>
       <div className="login-box">
         <h1 className="logo">FloatBox</h1>
         <p className="login-desc">頭の中のモヤモヤを吐き出そう</p>
@@ -186,7 +183,6 @@ function MainApp({ user, onToggleTheme, theme }) {
           {permission !== 'granted' && permission !== 'unsupported' && (
             <button className="notify-btn" onClick={subscribe} title="通知をオンにする">🔔</button>
           )}
-          <button className="theme-btn" onClick={onToggleTheme} title="テーマ切替">{theme === 'dark' ? '☀' : '☾'}</button>
           <button className="settings-btn" onClick={() => setShowSettings(true)} title="設定">⚙</button>
           <button className="logout-btn" onClick={() => signOut(auth)}>ログアウト</button>
         </div>
@@ -283,6 +279,8 @@ function MainApp({ user, onToggleTheme, theme }) {
           settings={settings}
           onUpdate={updateSettings}
           onClose={() => setShowSettings(false)}
+          theme={theme}
+          onToggleTheme={onToggleTheme}
         />
       )}
     </div>
@@ -490,7 +488,7 @@ const AUTO_CLEAR_OPTIONS = [
   { value: 30,   label: '30日後' },
 ]
 
-function SettingsModal({ settings, onUpdate, onClose }) {
+function SettingsModal({ settings, onUpdate, onClose, theme, onToggleTheme }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
@@ -500,6 +498,24 @@ function SettingsModal({ settings, onUpdate, onClose }) {
         </div>
 
         <div className="modal-section">
+          <p className="modal-section-title">テーマ</p>
+          <div className="settings-options">
+            <button
+              className={`settings-option ${theme === 'dark' ? 'active' : ''}`}
+              onClick={() => theme !== 'dark' && onToggleTheme()}
+            >
+              ダーク
+            </button>
+            <button
+              className={`settings-option ${theme === 'light' ? 'active' : ''}`}
+              onClick={() => theme !== 'light' && onToggleTheme()}
+            >
+              ライト
+            </button>
+          </div>
+        </div>
+
+        <div className="modal-section" style={{ marginTop: 20 }}>
           <p className="modal-section-title">完了済みの自動削除</p>
           <p className="modal-section-desc">チェックしてから指定の日数が経つと自動で削除されます</p>
           <div className="settings-options">

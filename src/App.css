@@ -21,7 +21,6 @@
 
 /* ===== ログイン ===== */
 .login-screen {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -98,25 +97,6 @@
   line-height: 1;
 }
 .notify-btn:hover { opacity: 1; }
-.theme-btn {
-  background: none;
-  border: none;
-  font-size: 15px;
-  cursor: pointer;
-  opacity: 0.5;
-  transition: opacity 0.15s;
-  padding: 0;
-  line-height: 1;
-  color: var(--text);
-}
-.theme-btn:hover { opacity: 1; }
-/* ログイン画面のテーマボタン */
-.login-screen .theme-btn {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  opacity: 0.4;
-}
 .settings-btn {
   background: none;
   border: none;
