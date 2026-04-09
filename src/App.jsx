@@ -100,7 +100,17 @@ function MainApp({ user, onToggleTheme, theme }) {
   const [completing, setCompleting] = useState(new Set())
   const [localItems, setLocalItems] = useState([])
   const [showSettings, setShowSettings] = useState(false)
+  const [expandedIds, setExpandedIds] = useState(new Set())
   const inputRef = useRef(null)
+
+  function handleToggleExpand(id) {
+    setExpandedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   useEffect(() => {
     setLocalItems(prev => {
@@ -242,6 +252,8 @@ function MainApp({ user, onToggleTheme, theme }) {
               onDelete={deleteItem}
               onMemo={updateMemo}
               onDueDate={updateDueDate}
+              expandedIds={expandedIds}
+              onToggleExpand={handleToggleExpand}
             />
             {doneItems.length > 0 && (
               <button className="done-toggle" onClick={() => setShowDone(v => !v)}>
@@ -257,6 +269,8 @@ function MainApp({ user, onToggleTheme, theme }) {
                 onDelete={deleteItem}
                 onMemo={updateMemo}
                 onDueDate={updateDueDate}
+                expanded={expandedIds.has(item.id)}
+                onToggleExpand={handleToggleExpand}
               />
             ))}
           </>
@@ -270,6 +284,8 @@ function MainApp({ user, onToggleTheme, theme }) {
             onDelete={deleteItem}
             onMemo={updateMemo}
             onDueDate={updateDueDate}
+            expandedIds={expandedIds}
+            onToggleExpand={handleToggleExpand}
           />
         )}
       </main>
@@ -315,7 +331,7 @@ function groupByTimeline(items) {
   return g
 }
 
-function TimelineView({ items, completing, onToggle, onDelete, onMemo, onDueDate }) {
+function TimelineView({ items, completing, onToggle, onDelete, onMemo, onDueDate, expandedIds, onToggleExpand }) {
   const groups = groupByTimeline(items)
   const hasAny = TL_GROUPS.some(g => groups[g.key].length > 0)
   if (!hasAny) return <p className="empty">タスクがありません</p>
@@ -339,6 +355,8 @@ function TimelineView({ items, completing, onToggle, onDelete, onMemo, onDueDate
                 onDelete={onDelete}
                 onMemo={onMemo}
                 onDueDate={onDueDate}
+                expanded={expandedIds.has(item.id)}
+                onToggleExpand={onToggleExpand}
               />
             ))}
           </div>
@@ -355,7 +373,7 @@ function toDateStr(year, month, day) {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }
 
-function CalendarView({ items, completing, onToggle, onDelete, onMemo, onDueDate }) {
+function CalendarView({ items, completing, onToggle, onDelete, onMemo, onDueDate, expandedIds, onToggleExpand }) {
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth())
@@ -453,6 +471,8 @@ function CalendarView({ items, completing, onToggle, onDelete, onMemo, onDueDate
                   onDelete={onDelete}
                   onMemo={onMemo}
                   onDueDate={onDueDate}
+                  expanded={expandedIds.has(item.id)}
+                  onToggleExpand={onToggleExpand}
                 />
               ))
           }
@@ -471,6 +491,8 @@ function CalendarView({ items, completing, onToggle, onDelete, onMemo, onDueDate
               onDelete={onDelete}
               onMemo={onMemo}
               onDueDate={onDueDate}
+              expanded={expandedIds.has(item.id)}
+              onToggleExpand={onToggleExpand}
             />
           ))}
         </div>
@@ -536,7 +558,7 @@ function SettingsModal({ settings, onUpdate, onClose, theme, onToggleTheme }) {
 }
 
 // dnd-kit のソータブルラッパー
-function SortableCard({ item, completing, onToggle, onDelete, onMemo, onDueDate }) {
+function SortableCard({ item, completing, onToggle, onDelete, onMemo, onDueDate, expanded, onToggleExpand }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id })
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -552,6 +574,8 @@ function SortableCard({ item, completing, onToggle, onDelete, onMemo, onDueDate 
       onDelete={onDelete}
       onMemo={onMemo}
       onDueDate={onDueDate}
+      expanded={expanded}
+      onToggleExpand={onToggleExpand}
       dragRef={setNodeRef}
       dragStyle={style}
       dragHandleProps={{ ...attributes, ...listeners }}
@@ -573,13 +597,13 @@ function getDueDateLabel(dueDate) {
   return { label: `${due.getMonth() + 1}/${due.getDate()}`, status: 'normal' }
 }
 
-function ItemCard({ item, completing, onToggle, onDelete, onMemo, onDueDate, dragRef, dragStyle, dragHandleProps }) {
-  const [expanded, setExpanded] = useState(false)
+function ItemCard({ item, completing, onToggle, onDelete, onMemo, onDueDate, expanded, onToggleExpand, dragRef, dragStyle, dragHandleProps }) {
   const [memo, setMemo] = useState(item.memo ?? '')
   const [confirmDelete, setConfirmDelete] = useState(false)
   const memoRef = useRef(null)
 
   useEffect(() => { setMemo(item.memo ?? '') }, [item.memo])
+  useEffect(() => { if (!expanded) setConfirmDelete(false) }, [expanded])
 
   function handleMemoBlur() {
     if (memo !== (item.memo ?? '')) onMemo(item.id, memo)
@@ -587,8 +611,7 @@ function ItemCard({ item, completing, onToggle, onDelete, onMemo, onDueDate, dra
 
   function handleExpand() {
     const next = !expanded
-    setExpanded(next)
-    if (!next) setConfirmDelete(false)
+    onToggleExpand(item.id)
     if (next) setTimeout(() => memoRef.current?.focus(), 50)
   }
 
