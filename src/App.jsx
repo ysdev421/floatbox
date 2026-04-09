@@ -42,23 +42,9 @@ export default function App() {
     })
   }, [])
 
-  const [showOnboarding, setShowOnboarding] = useState(false)
-
-  useEffect(() => {
-    if (user && !localStorage.getItem('floatbox_onboarded')) {
-      setShowOnboarding(true)
-    }
-  }, [user])
-
-  function finishOnboarding() {
-    localStorage.setItem('floatbox_onboarded', '1')
-    setShowOnboarding(false)
-  }
-
   if (error) return <div className="loading error">{error}</div>
   if (user === undefined) return <div className="loading">読み込み中...</div>
   if (!user) return <LoginScreen />
-  if (showOnboarding) return <Onboarding onDone={finishOnboarding} />
   return <MainApp user={user} onToggleTheme={toggleTheme} theme={theme} />
 }
 
@@ -89,12 +75,12 @@ function LoginScreen() {
 }
 
 function MainApp({ user, onToggleTheme, theme }) {
-  const { settings, updateSettings } = useSettings(user.uid)
+  const { settings, loading: settingsLoading, onboarded, updateSettings, completeOnboarding } = useSettings(user.uid)
   const { items, loading, addItem, toggleDone, updateMemo, updateType, updateText, updateDueDate, deleteItem, reorder } = useItems(user.uid, settings.autoClearDays)
   const { permission, subscribe } = usePush(user.uid)
   const [text, setText] = useState('')
   const [type, setType] = useState('must')
-  const [filter, setFilter] = useState('all')
+  const [filters, setFilters] = useState(new Set()) // 空 = All
   const [viewMode, setViewMode] = useState('list') // 'list' | 'calendar'
   const [showDone, setShowDone] = useState(false)
   const [completing, setCompleting] = useState(new Set())
@@ -178,11 +164,15 @@ function MainApp({ user, onToggleTheme, theme }) {
 
   const activeItems = localItems.filter(item => {
     if (item.done) return false
-    if (filter === 'all') return true
-    return item.type === filter
+    if (filters.size === 0) return true
+    return filters.has(item.type)
   })
 
   const doneItems = localItems.filter(item => item.done)
+
+  // Firestoreのonboarded読み込み完了前は何も表示しない
+  if (settingsLoading || onboarded === null) return <div className="loading">読み込み中...</div>
+  if (!onboarded) return <Onboarding onDone={completeOnboarding} />
 
   return (
     <div className="app">
@@ -219,9 +209,21 @@ function MainApp({ user, onToggleTheme, theme }) {
 
       <div className="toolbar">
         <div className="filters">
-          {['all', 'must', 'want', 'someday'].map(f => (
-            <button key={f} className={`filter-btn ${filter === f ? 'active' : ''}`} onClick={() => setFilter(f)}>
-              {f === 'all' ? 'All' : f === 'must' ? 'Must' : f === 'want' ? 'Want' : 'Someday'}
+          <button
+            className={`filter-btn ${filters.size === 0 ? 'active' : ''}`}
+            onClick={() => setFilters(new Set())}
+          >All</button>
+          {['must', 'want', 'someday'].map(f => (
+            <button
+              key={f}
+              className={`filter-btn ${filters.has(f) ? 'active' : ''}`}
+              onClick={() => setFilters(prev => {
+                const next = new Set(prev)
+                next.has(f) ? next.delete(f) : next.add(f)
+                return next
+              })}
+            >
+              {f === 'must' ? 'Must' : f === 'want' ? 'Want' : 'Someday'}
             </button>
           ))}
         </div>

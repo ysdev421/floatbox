@@ -8,20 +8,22 @@ const DEFAULTS = {
 
 export function useSettings(uid) {
   const [settings, setSettings] = useState(DEFAULTS)
+  const [onboarded, setOnboarded] = useState(null) // null = loading
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!uid) {
       setSettings(DEFAULTS)
+      setOnboarded(true)
       setLoading(false)
       return
     }
 
     const ref = doc(db, 'users', uid)
     const unsub = onSnapshot(ref, snap => {
-      if (snap.exists() && snap.data().settings) {
-        setSettings({ ...DEFAULTS, ...snap.data().settings })
-      }
+      const data = snap.exists() ? snap.data() : {}
+      if (data.settings) setSettings({ ...DEFAULTS, ...data.settings })
+      setOnboarded(data.onboarded === true)
       setLoading(false)
     })
     return unsub
@@ -31,5 +33,9 @@ export function useSettings(uid) {
     await setDoc(doc(db, 'users', uid), { settings: { ...settings, ...patch } }, { merge: true })
   }
 
-  return { settings, loading, updateSettings }
+  async function completeOnboarding() {
+    await setDoc(doc(db, 'users', uid), { onboarded: true }, { merge: true })
+  }
+
+  return { settings, loading, onboarded, updateSettings, completeOnboarding }
 }
