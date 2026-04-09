@@ -599,10 +599,13 @@ function getDueDateLabel(dueDate) {
 
 function ItemCard({ item, completing, onToggle, onDelete, onMemo, onDueDate, expanded, onToggleExpand, dragRef, dragStyle, dragHandleProps }) {
   const [memo, setMemo] = useState(item.memo ?? '')
+  const [localDate, setLocalDate] = useState(item.dueDate ?? '')
   const [confirmDelete, setConfirmDelete] = useState(false)
   const memoRef = useRef(null)
+  const dateOpenRef = useRef(item.dueDate ?? '')
 
   useEffect(() => { setMemo(item.memo ?? '') }, [item.memo])
+  useEffect(() => { setLocalDate(item.dueDate ?? '') }, [item.dueDate])
   useEffect(() => { if (!expanded) setConfirmDelete(false) }, [expanded])
 
   function handleMemoBlur() {
@@ -610,9 +613,7 @@ function ItemCard({ item, completing, onToggle, onDelete, onMemo, onDueDate, exp
   }
 
   function handleExpand() {
-    const next = !expanded
     onToggleExpand(item.id)
-    if (next) setTimeout(() => memoRef.current?.focus(), 50)
   }
 
   const cls = ['card', item.type, item.done ? 'done' : '', completing ? 'completing' : ''].filter(Boolean).join(' ')
@@ -658,11 +659,18 @@ function ItemCard({ item, completing, onToggle, onDelete, onMemo, onDueDate, exp
               <input
                 type="date"
                 className="due-input"
-                value={item.dueDate ?? ''}
-                onChange={e => onDueDate(item.id, e.target.value || null)}
+                value={localDate}
+                onFocus={() => { dateOpenRef.current = localDate }}
+                onChange={e => setLocalDate(e.target.value)}
+                onBlur={e => {
+                  const val = e.target.value || null
+                  if (val !== (item.dueDate ?? null)) {
+                    onDueDate(item.id, val)
+                  }
+                }}
               />
-              {item.dueDate && (
-                <button className="due-clear" onClick={() => onDueDate(item.id, null)}>×</button>
+              {(localDate || item.dueDate) && (
+                <button className="due-clear" onClick={() => { setLocalDate(''); onDueDate(item.id, null) }}>×</button>
               )}
             </label>
             <textarea
