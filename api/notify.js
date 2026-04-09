@@ -33,11 +33,20 @@ export default async function handler(req, res) {
   const isEvening = hour === 12
   if (!isMorning && !isEvening) return res.status(200).json({ skipped: true })
 
+  const morningMessages = [
+    'おはようなのだ！今日のモヤモヤ、ずんだもんに預けるのだ ☀️',
+    'あさなのだ！頭の中、ごちゃごちゃしてないかなのだ？吐き出すのだ 🌿',
+    'おはようなのだ！今日やることを外に出して、すっきりするのだ ☀️',
+  ]
+  const eveningMessages = [
+    'おつかれなのだ！今日のモヤモヤ、ちゃんと整理できたのだ？ 🌙',
+    'よるなのだ！頭の中が重いままだと眠れないのだ。吐き出すのだ 🌙',
+    'おつかれなのだ！今日のやらなきゃ、どのくらい片付いたのだ？ 🌿',
+  ]
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)]
   const payload = JSON.stringify({
-    title: 'FloatBox',
-    body: isMorning
-      ? '今日のモヤモヤを吐き出しておこう ☀️'
-      : '今日のモヤモヤ、整理できた？ 🌙',
+    title: 'FloatBox 🫛',
+    body: isMorning ? pick(morningMessages) : pick(eveningMessages),
   })
 
   // 全ユーザーのサブスクリプションを取得して送信
