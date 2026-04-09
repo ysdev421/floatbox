@@ -408,7 +408,7 @@ function CalendarView({ items, completing, onToggle, onDelete, onMemo, onDueDate
                 dayItems.length ? 'has-items' : '',
                 dow === 0 ? 'sun' : dow === 6 ? 'sat' : '',
               ].filter(Boolean).join(' ')}
-              onClick={() => setSelectedDate(isSelected ? null : ds)}
+              onClick={e => { e.stopPropagation(); setSelectedDate(isSelected ? null : ds) }}
             >
               <span className="cal-day-num">{day}</span>
               {dayItems.length > 0 && (
