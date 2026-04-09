@@ -21,6 +21,7 @@
 
 /* ===== ログイン ===== */
 .login-screen {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -97,6 +98,25 @@
   line-height: 1;
 }
 .notify-btn:hover { opacity: 1; }
+.theme-btn {
+  background: none;
+  border: none;
+  font-size: 15px;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+  padding: 0;
+  line-height: 1;
+  color: var(--text);
+}
+.theme-btn:hover { opacity: 1; }
+/* ログイン画面のテーマボタン */
+.login-screen .theme-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  opacity: 0.4;
+}
 .settings-btn {
   background: none;
   border: none;
@@ -721,7 +741,7 @@
 .modal {
   width: 100%;
   max-width: 480px;
-  background: #111214;
+  background: var(--modal-bg);
   border: 1px solid var(--border2);
   border-bottom: none;
   border-radius: 16px 16px 0 0;
@@ -942,3 +962,35 @@
 }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
 * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.1) transparent; }
+
+/* ===== ライトモード上書き ===== */
+[data-theme="light"] .google-btn { background: var(--glass-2); }
+[data-theme="light"] .google-btn:hover { background: var(--glass-3); border-color: var(--border2); }
+[data-theme="light"] .logout-btn { background: var(--glass-2); }
+[data-theme="light"] .logout-btn:hover { background: var(--glass-3); }
+[data-theme="light"] .type-btn { background: var(--glass-1); }
+[data-theme="light"] .type-btn.must.active { background: rgba(217,119,6,0.12); }
+[data-theme="light"] .type-btn.want.active { background: rgba(5,150,105,0.12); }
+[data-theme="light"] .input { background: var(--glass-2); }
+[data-theme="light"] .view-toggle { background: var(--glass-2); }
+[data-theme="light"] .view-btn.active { background: var(--glass-4); }
+[data-theme="light"] .filter-btn:hover { background: var(--glass-3); }
+[data-theme="light"] .filter-btn.active { background: var(--glass-4); }
+[data-theme="light"] .check-btn { background: var(--glass-2); border-color: var(--border); }
+[data-theme="light"] .check-btn:hover { background: var(--glass-3); }
+[data-theme="light"] .expand-btn:hover { background: var(--glass-3); }
+[data-theme="light"] .drag-handle { color: var(--text-mute); }
+[data-theme="light"] .due-input { background: var(--glass-2); border-color: var(--border); color: var(--text); }
+[data-theme="light"] .memo-input { background: var(--glass-2); border-color: var(--border); }
+[data-theme="light"] .done-toggle { color: var(--text-mute); }
+[data-theme="light"] .done-toggle:hover { background: var(--glass-3); }
+[data-theme="light"] .settings-option { background: var(--glass-2); }
+[data-theme="light"] .settings-option:hover { background: var(--glass-3); }
+[data-theme="light"] .delete-confirm-no:hover { background: var(--glass-3); }
+[data-theme="light"] .cal-cell:not(.empty):hover { background: var(--glass-3); }
+[data-theme="light"] .cal-cell.today { background: rgba(94,106,210,0.1); }
+[data-theme="light"] .cal-cell.selected { background: rgba(94,106,210,0.18); }
+[data-theme="light"] .tl-header { border-color: var(--border); }
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); }
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
+[data-theme="light"] * { scrollbar-color: rgba(0,0,0,0.15) transparent; }

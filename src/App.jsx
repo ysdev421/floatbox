@@ -20,9 +20,21 @@ import { usePush } from './hooks/usePush'
 import { useSettings } from './hooks/useSettings'
 import './App.css'
 
+// テーマ初期化（フラッシュ防止のため最初に実行）
+const savedTheme = localStorage.getItem('floatbox_theme') ?? 'dark'
+document.documentElement.setAttribute('data-theme', savedTheme)
+
 export default function App() {
   const [user, setUser] = useState(undefined)
   const [error, setError] = useState(null)
+  const [theme, setTheme] = useState(savedTheme)
+
+  function toggleTheme() {
+    const next = theme === 'dark' ? 'light' : 'dark'
+    setTheme(next)
+    localStorage.setItem('floatbox_theme', next)
+    document.documentElement.setAttribute('data-theme', next)
+  }
 
   useEffect(() => {
     return onAuthStateChanged(auth, u => setUser(u ?? null), e => {
@@ -45,12 +57,12 @@ export default function App() {
 
   if (error) return <div className="loading error">{error}</div>
   if (user === undefined) return <div className="loading">読み込み中...</div>
-  if (!user) return <LoginScreen />
+  if (!user) return <LoginScreen onToggleTheme={toggleTheme} theme={theme} />
   if (showOnboarding) return <Onboarding onDone={finishOnboarding} />
-  return <MainApp user={user} />
+  return <MainApp user={user} onToggleTheme={toggleTheme} theme={theme} />
 }
 
-function LoginScreen() {
+function LoginScreen({ onToggleTheme, theme }) {
   const [error, setError] = useState(null)
 
   async function login() {
@@ -63,6 +75,9 @@ function LoginScreen() {
 
   return (
     <div className="login-screen">
+      <button className="theme-btn" onClick={onToggleTheme} title="テーマ切替">
+        {theme === 'dark' ? '☀' : '☾'}
+      </button>
       <div className="login-box">
         <h1 className="logo">FloatBox</h1>
         <p className="login-desc">頭の中のモヤモヤを吐き出そう</p>
@@ -76,7 +91,7 @@ function LoginScreen() {
   )
 }
 
-function MainApp({ user }) {
+function MainApp({ user, onToggleTheme, theme }) {
   const { settings, updateSettings } = useSettings(user.uid)
   const { items, loading, addItem, toggleDone, updateMemo, updateDueDate, deleteItem, reorder } = useItems(user.uid, settings.autoClearDays)
   const { permission, subscribe } = usePush(user.uid)
@@ -171,6 +186,7 @@ function MainApp({ user }) {
           {permission !== 'granted' && permission !== 'unsupported' && (
             <button className="notify-btn" onClick={subscribe} title="通知をオンにする">🔔</button>
           )}
+          <button className="theme-btn" onClick={onToggleTheme} title="テーマ切替">{theme === 'dark' ? '☀' : '☾'}</button>
           <button className="settings-btn" onClick={() => setShowSettings(true)} title="設定">⚙</button>
           <button className="logout-btn" onClick={() => signOut(auth)}>ログアウト</button>
         </div>
