@@ -92,6 +92,14 @@ export function useItems(uid, autoClearDays) {
     await updateDoc(doc(db, 'users', uid, 'items', id), { memo })
   }
 
+  async function updateType(id, type) {
+    await updateDoc(doc(db, 'users', uid, 'items', id), { type })
+  }
+
+  async function updateText(id, text) {
+    await updateDoc(doc(db, 'users', uid, 'items', id), { text })
+  }
+
   async function updateDueDate(id, dueDate) {
     await updateDoc(doc(db, 'users', uid, 'items', id), { dueDate: dueDate ?? null })
   }
@@ -109,5 +117,5 @@ export function useItems(uid, autoClearDays) {
     await batch.commit()
   }
 
-  return { items, loading, addItem, toggleDone, updateMemo, updateDueDate, deleteItem, reorder }
+  return { items, loading, addItem, toggleDone, updateMemo, updateType, updateText, updateDueDate, deleteItem, reorder }
 }

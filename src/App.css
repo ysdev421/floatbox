@@ -502,6 +502,28 @@
 }
 .tag.must { color: var(--must); }
 .tag.want { color: var(--want); }
+.tag-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  margin: -4px -4px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.text-edit-input {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid rgba(94,106,210,0.4);
+  border-radius: var(--radius-xs);
+  color: var(--text);
+  font-size: 14px;
+  padding: 4px 6px;
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+  margin: 2px 0;
+}
 
 .expand-btn {
   background: none;

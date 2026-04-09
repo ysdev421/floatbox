@@ -90,7 +90,7 @@ function LoginScreen() {
 
 function MainApp({ user, onToggleTheme, theme }) {
   const { settings, updateSettings } = useSettings(user.uid)
-  const { items, loading, addItem, toggleDone, updateMemo, updateDueDate, deleteItem, reorder } = useItems(user.uid, settings.autoClearDays)
+  const { items, loading, addItem, toggleDone, updateMemo, updateType, updateText, updateDueDate, deleteItem, reorder } = useItems(user.uid, settings.autoClearDays)
   const { permission, subscribe } = usePush(user.uid)
   const [text, setText] = useState('')
   const [type, setType] = useState('must')
@@ -251,6 +251,8 @@ function MainApp({ user, onToggleTheme, theme }) {
               onToggle={handleToggle}
               onDelete={deleteItem}
               onMemo={updateMemo}
+              onType={updateType}
+              onText={updateText}
               onDueDate={updateDueDate}
               expandedIds={expandedIds}
               onToggleExpand={handleToggleExpand}
@@ -268,6 +270,8 @@ function MainApp({ user, onToggleTheme, theme }) {
                 onToggle={handleToggle}
                 onDelete={deleteItem}
                 onMemo={updateMemo}
+                onType={updateType}
+                onText={updateText}
                 onDueDate={updateDueDate}
                 expanded={expandedIds.has(item.id)}
                 onToggleExpand={handleToggleExpand}
@@ -283,6 +287,8 @@ function MainApp({ user, onToggleTheme, theme }) {
             onToggle={handleToggle}
             onDelete={deleteItem}
             onMemo={updateMemo}
+            onType={updateType}
+            onText={updateText}
             onDueDate={updateDueDate}
             expandedIds={expandedIds}
             onToggleExpand={handleToggleExpand}
@@ -331,7 +337,7 @@ function groupByTimeline(items) {
   return g
 }
 
-function TimelineView({ items, completing, onToggle, onDelete, onMemo, onDueDate, expandedIds, onToggleExpand }) {
+function TimelineView({ items, completing, onToggle, onDelete, onMemo, onType, onText, onDueDate, expandedIds, onToggleExpand }) {
   const groups = groupByTimeline(items)
   const hasAny = TL_GROUPS.some(g => groups[g.key].length > 0)
   if (!hasAny) return <p className="empty">タスクがありません</p>
@@ -354,6 +360,8 @@ function TimelineView({ items, completing, onToggle, onDelete, onMemo, onDueDate
                 onToggle={onToggle}
                 onDelete={onDelete}
                 onMemo={onMemo}
+                onType={onType}
+                onText={onText}
                 onDueDate={onDueDate}
                 expanded={expandedIds.has(item.id)}
                 onToggleExpand={onToggleExpand}
@@ -373,7 +381,7 @@ function toDateStr(year, month, day) {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }
 
-function CalendarView({ items, completing, onToggle, onDelete, onMemo, onDueDate, expandedIds, onToggleExpand }) {
+function CalendarView({ items, completing, onToggle, onDelete, onMemo, onType, onText, onDueDate, expandedIds, onToggleExpand }) {
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth())
@@ -470,6 +478,8 @@ function CalendarView({ items, completing, onToggle, onDelete, onMemo, onDueDate
                   onToggle={onToggle}
                   onDelete={onDelete}
                   onMemo={onMemo}
+                  onType={onType}
+                  onText={onText}
                   onDueDate={onDueDate}
                   expanded={expandedIds.has(item.id)}
                   onToggleExpand={onToggleExpand}
@@ -490,6 +500,8 @@ function CalendarView({ items, completing, onToggle, onDelete, onMemo, onDueDate
               onToggle={onToggle}
               onDelete={onDelete}
               onMemo={onMemo}
+              onType={onType}
+              onText={onText}
               onDueDate={onDueDate}
               expanded={expandedIds.has(item.id)}
               onToggleExpand={onToggleExpand}
@@ -597,19 +609,30 @@ function getDueDateLabel(dueDate) {
   return { label: `${due.getMonth() + 1}/${due.getDate()}`, status: 'normal' }
 }
 
-function ItemCard({ item, completing, onToggle, onDelete, onMemo, onDueDate, expanded, onToggleExpand, dragRef, dragStyle, dragHandleProps }) {
+function ItemCard({ item, completing, onToggle, onDelete, onMemo, onType, onText, onDueDate, expanded, onToggleExpand, dragRef, dragStyle, dragHandleProps }) {
   const [memo, setMemo] = useState(item.memo ?? '')
   const [localDate, setLocalDate] = useState(item.dueDate ?? '')
+  const [editingText, setEditingText] = useState(false)
+  const [localText, setLocalText] = useState(item.text)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const memoRef = useRef(null)
+  const textRef = useRef(null)
   const dateOpenRef = useRef(item.dueDate ?? '')
 
   useEffect(() => { setMemo(item.memo ?? '') }, [item.memo])
   useEffect(() => { setLocalDate(item.dueDate ?? '') }, [item.dueDate])
-  useEffect(() => { if (!expanded) setConfirmDelete(false) }, [expanded])
+  useEffect(() => { if (!editingText) setLocalText(item.text) }, [item.text, editingText])
+  useEffect(() => { if (!expanded) { setConfirmDelete(false); setEditingText(false) } }, [expanded])
 
   function handleMemoBlur() {
     if (memo !== (item.memo ?? '')) onMemo(item.id, memo)
+  }
+
+  function handleTextBlur() {
+    const trimmed = localText.trim()
+    if (trimmed && trimmed !== item.text) onText(item.id, trimmed)
+    else setLocalText(item.text)
+    setEditingText(false)
   }
 
   function handleExpand() {
@@ -640,12 +663,31 @@ function ItemCard({ item, completing, onToggle, onDelete, onMemo, onDueDate, exp
       {/* 本文 */}
       <div className="card-body">
         <div className="card-top">
-          <span className={`tag ${item.type}`}>{item.type === 'must' ? 'Must' : 'Want'}</span>
+          <button
+            className={`tag tag-btn ${item.type}`}
+            onClick={() => onType(item.id, item.type === 'must' ? 'want' : 'must')}
+            title="タップでMust/Want切替"
+          >
+            {item.type === 'must' ? 'Must' : 'Want'}
+          </button>
           <button className="expand-btn" onClick={handleExpand}>
             {expanded ? '▲' : (item.memo || item.dueDate ? '📝' : '···')}
           </button>
         </div>
-        <p className="card-text">{item.text}</p>
+        {editingText ? (
+          <input
+            ref={textRef}
+            className="text-edit-input"
+            value={localText}
+            onChange={e => setLocalText(e.target.value)}
+            onBlur={handleTextBlur}
+            onKeyDown={e => { if (e.key === 'Enter') textRef.current?.blur() }}
+          />
+        ) : (
+          <p className="card-text" onClick={() => expanded && setEditingText(true)}>
+            {item.text}
+          </p>
+        )}
 
         {item.dueDate && !expanded && (() => {
           const d = getDueDateLabel(item.dueDate)
